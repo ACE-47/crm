@@ -6,6 +6,6 @@ urlpatterns = [
     path('<int:pk>/', views.LeadDetailView.as_view(),name='lead-details'),
     path('<int:pk>/delete/', views.LeadDeleteView.as_view(),name='lead-delete'),
     path('<int:pk>/edit/', views.LeadUpdateView.as_view(),name='edit-lead'),
-    path('<int:pk>/convert/', views.convert_to_client,name='lead-convert'),
+    path('<int:pk>/convert/', views.ConvertToClientView.as_view(),name='lead-convert'),
     path('add-lead/', views.LeadCreateView.as_view(),name='add-lead'),
 ]

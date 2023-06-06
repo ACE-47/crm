@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect, get_object_or_404 
-from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView
+from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView,View
 from team.models import Team
 from .forms import AddLeadForm
 from .models import Lead
@@ -67,7 +67,8 @@ class LeadUpdateView(UpdateView):
     model = Lead
     fields = ('name','email','description','priority','status')
 
-    template_name = 'lead/edit_lead.html'
+    template_name = 'lead/lead_form.html'
+    success_url = reverse_lazy('leads-list')
 
     @method_decorator(login_required)
     def dispatch(self,  *args, **kwargs) :
@@ -78,22 +79,25 @@ class LeadUpdateView(UpdateView):
         queryset = queryset.filter(created_by =self.request.user, pk = self.kwargs.get('pk'))
         return queryset
     
-    def get_success_url(self) -> str:
-        return reverse_lazy('leads-list')
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Lead'
+        return context
     
+##############################################
 
 class LeadCreateView(CreateView):
     model = Lead
     fields = ('name','email','description','priority','status')
 
-    template_name = 'lead/add_lead.html'
+    template_name = 'lead/lead_form.html'
+    success_url = reverse_lazy('leads-list')
 
     @method_decorator(login_required)
     def dispatch(self,  *args, **kwargs) :
         return super().dispatch(*args, **kwargs)
     
-    def get_success_url(self) -> str:
-        return reverse_lazy('leads-list')
+    
     
     def form_valid(self, form: BaseModelForm) :
         team = Team.objects.filter(created_by = self.request.user)[0]
@@ -105,8 +109,28 @@ class LeadCreateView(CreateView):
     
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['team'] = team = Team.objects.filter(created_by = self.request.user)[0]
+        team = Team.objects.filter(created_by = self.request.user)[0]
+        context['team'] = team
+        context['title'] = 'Add Lead'
         return context
+    
+
+class ConvertToClientView(View):
+    def get(self,request,*args, **kwargs):
+        lead = get_object_or_404(Lead,created_by = request.user,pk = kwargs.get('pk'))
+        team = Team.objects.filter(created_by = request.user)[0]
+
+        client = Client.objects.create(name = lead.name,
+                                    email = lead.email,
+                                    description = lead.description,
+                                    created_by = request.user,
+                                    team = team
+                                    )
+        
+        lead.converted_to_client = True
+        lead.save()
+        messages.success(request, 'The lead was successfuly converted into a client')
+        return redirect('leads-list')
 
 # @login_required
 # def leads_list(request):
@@ -152,41 +176,42 @@ class LeadCreateView(CreateView):
 #         'lead':lead
 #     })
 
-@login_required
-def add_lead(request):
-    # make the logic of checking the max leads in here rother than in the template or both .............................
-    team = Team.objects.filter(created_by = request.user)[0]
-    if request.method == 'POST':
-        form =AddLeadForm(request.POST)
-        if form.is_valid():
-            team = Team.objects.filter(created_by = request.user)[0]
-            lead = form.save(commit=False)
-            lead.created_by = request.user
-            lead.team =team
-            lead.save()
-            messages.success(request, 'The lead was successfuly created')
-            return redirect('leads-list')
-    else:
-        form = AddLeadForm()
-    return render(request,'lead/add_lead.html',{
-        'form':form,
-        'team':team
-    })
+# @login_required
+# def add_lead(request):
+#     # make the logic of checking the max leads in here rother than in the template or both .............................
+#     team = Team.objects.filter(created_by = request.user)[0]
+#     if request.method == 'POST':
+#         form =AddLeadForm(request.POST)
+#         if form.is_valid():
+#             team = Team.objects.filter(created_by = request.user)[0]
+#             lead = form.save(commit=False)
+#             lead.created_by = request.user
+#             lead.team =team
+#             lead.save()
+#             messages.success(request, 'The lead was successfuly created')
+#             return redirect('leads-list')
+#     else:
+#         form = AddLeadForm()
+#     return render(request,'lead/add_lead.html',{
+#         'form':form,
+#         'team':team
+#     })
 
 
-@login_required
-def convert_to_client(request,pk):
-    lead = get_object_or_404(Lead,created_by = request.user,pk = pk)
-    team = Team.objects.filter(created_by = request.user)[0]
+# @login_required
+# def convert_to_client(request,pk):
+#     lead = get_object_or_404(Lead,created_by = request.user,pk = pk)
+#     team = Team.objects.filter(created_by = request.user)[0]
 
-    client = Client.objects.create(name = lead.name,
-                                   email = lead.email,
-                                   description = lead.description,
-                                   created_by = request.user,
-                                   team = team
-                                   )
+#     client = Client.objects.create(name = lead.name,
+#                                    email = lead.email,
+#                                    description = lead.description,
+#                                    created_by = request.user,
+#                                    team = team
+#                                    )
     
-    lead.converted_to_client = True
-    lead.save()
-    messages.success(request, 'The lead was successfuly converted into a client')
-    return redirect('leads-list')
+#     lead.converted_to_client = True
+#     lead.save()
+#     messages.success(request, 'The lead was successfuly converted into a client')
+#     return redirect('leads-list')
+
