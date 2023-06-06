@@ -1,10 +1,9 @@
-from typing import Any
-from django import http
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView
+from django.shortcuts import render, redirect, get_object_or_404 
+from django.views.generic import ListView, DetailView, DeleteView
 from team.models import Team
 from .forms import AddLeadForm
 from .models import Lead
@@ -36,12 +35,28 @@ class LeadDetailView(DetailView):
         return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
-        queryset =  super(LeadDetailView).get_queryset()
+        queryset =  super(LeadDetailView,self).get_queryset()
         queryset = queryset.filter(created_by =self.request.user,pk = self.kwargs.get('pk'))
         return queryset
     
 ##############################################
 
+class LeadDeleteView(DeleteView):
+    model = Lead
+    success_url = reverse_lazy('leads-list')
+
+    @method_decorator(login_required)
+    def dispatch(self,  *args, **kwargs) :
+        return super().dispatch(*args, **kwargs)
+    
+
+    def get_queryset(self):
+        queryset =  super(LeadDeleteView,self).get_queryset()
+        queryset = queryset.filter(created_by =self.request.user, pk = self.kwargs.get('pk'))
+        return queryset
+
+    # def get(self, request, *args, **kwargs) -> HttpResponse:
+    #     return self.post(request, *args, **kwargs)
 
 # @login_required
 # def leads_list(request):
@@ -51,13 +66,13 @@ class LeadDetailView(DetailView):
 #     })
 
 
-@login_required
-def lead_delete(request,pk):
-    lead = get_object_or_404(Lead,created_by = request.user,pk = pk)
-    lead.delete()
+# @login_required
+# def lead_delete(request,pk):
+#     lead = get_object_or_404(Lead,created_by = request.user,pk = pk)
+#     lead.delete()
 
-    messages.success(request, 'The lead was successfuly deleted')
-    return redirect('leads-list')
+#     messages.success(request, 'The lead was successfuly deleted')
+#     return redirect('leads-list')
 
 @login_required
 def edit_lead(request,pk):
