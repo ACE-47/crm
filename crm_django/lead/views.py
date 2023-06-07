@@ -8,9 +8,9 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect, get_object_or_404 
 from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView,View
 from team.models import Team
-from .forms import AddLeadForm
-from .models import Lead
-from client.models import Client  # imported like mosh said
+from .forms import AddCommentForm
+from .models import Lead,Comment
+from client.models import Client, Comment as ClientComment  # imported like mosh said
 # Create your views here.
 
 class LeadListView(ListView):
@@ -32,6 +32,12 @@ class LeadListView(ListView):
 class LeadDetailView(DetailView):
     model = Lead
     template_name = 'lead/lead_details.html'
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['form'] = AddCommentForm()
+        return context
+    
 
     @method_decorator(login_required)
     def dispatch(self,  *args, **kwargs) :
@@ -129,9 +135,37 @@ class ConvertToClientView(View):
         
         lead.converted_to_client = True
         lead.save()
+        
+        #convert lead comments to the client  
+        for comment in lead.comments.all():
+            ClientComment.objects.create(
+                content = comment.content,
+                created_by = comment.created_by,
+                team = team,
+                client = client,
+            )
+
+
         messages.success(request, 'The lead was successfuly converted into a client')
         return redirect('leads-list')
+    
 
+class AddCommentView(View):
+    def post(self,request,*args,**kwargs):
+        team = Team.objects.filter(created_by = request.user)[0]
+        form = AddCommentForm(request.POST)
+        pk = kwargs.get('pk')
+        
+
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.created_by = request.user
+            comment.team = team
+            comment.lead_id = pk
+            
+            comment.save()
+
+        return redirect('lead-details',pk = pk)
 # @login_required
 # def leads_list(request):
 #     leads = Lead.objects.filter(created_by = request.user,converted_to_client = False)

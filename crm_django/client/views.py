@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from team.models import Team
 from .models import Client
-from .forms import AddClientForm
+from .forms import AddClientForm, AddCommentForm
 # Create your views here.
 
 def clients_list(request):
@@ -17,9 +17,23 @@ def clients_list(request):
 @login_required
 def client_details(request, pk):
     client = get_object_or_404(Client, created_by = request.user, pk = pk)
-   
+    team = Team.objects.filter(created_by = request.user)[0]
+
+    if request.method == 'POST':
+
+        form = AddCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.created_by = request.user
+            comment.team = team
+            comment.client = client
+            comment.save()
+            return redirect('client-details',pk = pk)
+    else:
+        form = AddCommentForm()
     return render(request,'client/client_detail.html',{
-        'client':client
+        'client':client,
+        'form': form
     })
 
 
