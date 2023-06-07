@@ -5,10 +5,12 @@
 {% endblock title %}
 
 {% block content %}
-    <h1 class="text-xl">Log in</h1>
-    <form method="post" action=".">
-        {% csrf_token %}
-        {{form.as_p}}
-        <button class="py-4 px-8 bg-teal-500 text-white rounded-xl">Log in</button>
-    </form>
+    <div class="py-6 px-6">
+        <h1 class="my-4 text-xl"><strong>Log in</strong></h1>
+        <form method="post" action="." class="py-4 px-4">
+            {% csrf_token %}
+            {{form.as_p}}
+            <button class="py-4 px-6 bg-teal-500 text-white rounded-xl text-xl">Log in</button>
+        </form>
+    </div>
 {% endblock content %}

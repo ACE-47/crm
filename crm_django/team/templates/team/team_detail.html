@@ -6,7 +6,20 @@
 
 {% block content %}
 <div class="py-6 px-6">
-    <h1 class="text-xl">({{team.name}})</h1>
+    <h1 class="text-xl">Team: ({{team.name}})</h1>
+    {% if team.created_by == request.user %}
+                <a href="{% url 'edit-team' team.id %}">(Edit)</a>
+    {% endif %}
+    <p class="mt-6"><strong>Team Owner:</strong> {{team.created_by}}</p>
+
+    <hr class="my-4">
+
+    <h2 class="font-semibold">Team Member</h2>
+
+    {% for member in team.member.all %}
     
+        <p>{{member.username}}</p>
+    {% endfor %}
+
 </div>
 {% endblock content %}

@@ -12,10 +12,10 @@
         </p>
 
         <p class="mb-2">
-            <strong>Team: </strong> {{team.name}}
+            <strong>Team: </strong> <a href="{% url 'team-detail' team.id %}"> {{team.name}} </a>
 
             {% if team.created_by == request.user %}
-            <a href="{% url 'edit-team' team.id %}">(Edit)</a>
+                <a href="{% url 'edit-team' team.id %}">(Edit)</a>
             {% endif %}
         </p>
 
