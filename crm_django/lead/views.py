@@ -1,26 +1,27 @@
 from typing import Any, Dict
 from django.forms.models import BaseModelForm
-from django.http import HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+# from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+# from django.contrib.auth.decorators import login_required
+# from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect, get_object_or_404 
 from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView,View
 from team.models import Team
 from .forms import AddCommentForm, AddFileForm
-from .models import Lead,Comment
+from .models import Lead
 from client.models import Client, Comment as ClientComment  # imported like mosh said
 # Create your views here.
 
-class LeadListView(ListView):
+class LeadListView(LoginRequiredMixin,ListView):
     model =Lead
     context_object_name = 'leads'
     template_name = 'lead/leads_list.html'
 
-    @method_decorator(login_required)
-    def dispatch(self,  *args, **kwargs) :
-        return super().dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self,  *args, **kwargs) :
+    #     return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         queryset =  super(LeadListView, self).get_queryset()
@@ -29,7 +30,7 @@ class LeadListView(ListView):
     
 ##############################
 
-class LeadDetailView(DetailView):
+class LeadDetailView(LoginRequiredMixin,DetailView):
     model = Lead
     template_name = 'lead/lead_details.html'
 
@@ -40,9 +41,9 @@ class LeadDetailView(DetailView):
         return context
     
 
-    @method_decorator(login_required)
-    def dispatch(self,  *args, **kwargs) :
-        return super().dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self,  *args, **kwargs) :
+    #     return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         queryset =  super(LeadDetailView,self).get_queryset()
@@ -51,13 +52,13 @@ class LeadDetailView(DetailView):
     
 ##############################################
 
-class LeadDeleteView(DeleteView):
+class LeadDeleteView(LoginRequiredMixin,DeleteView):
     model = Lead
     success_url = reverse_lazy('leads-list')
 
-    @method_decorator(login_required)
-    def dispatch(self,  *args, **kwargs) :
-        return super().dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self,  *args, **kwargs) :
+    #     return super().dispatch(*args, **kwargs)
     
 
     def get_queryset(self):
@@ -70,16 +71,16 @@ class LeadDeleteView(DeleteView):
 
 ##########################################################
 
-class LeadUpdateView(UpdateView):
+class LeadUpdateView(LoginRequiredMixin,UpdateView):
     model = Lead
     fields = ('name','email','description','priority','status')
 
     template_name = 'lead/lead_form.html'
     success_url = reverse_lazy('leads-list')
 
-    @method_decorator(login_required)
-    def dispatch(self,  *args, **kwargs) :
-        return super().dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self,  *args, **kwargs) :
+    #     return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         queryset =  super(LeadUpdateView,self).get_queryset()
@@ -93,16 +94,16 @@ class LeadUpdateView(UpdateView):
     
 ##############################################
 
-class LeadCreateView(CreateView):
+class LeadCreateView(LoginRequiredMixin,CreateView):
     model = Lead
     fields = ('name','email','description','priority','status')
 
     template_name = 'lead/lead_form.html'
     success_url = reverse_lazy('leads-list')
 
-    @method_decorator(login_required)
-    def dispatch(self,  *args, **kwargs) :
-        return super().dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self,  *args, **kwargs) :
+    #     return super().dispatch(*args, **kwargs)
     
     
     
@@ -122,7 +123,7 @@ class LeadCreateView(CreateView):
         return context
     
 
-class ConvertToClientView(View):
+class ConvertToClientView(LoginRequiredMixin,View):
     def get(self,request,*args, **kwargs):
         lead = get_object_or_404(Lead,created_by = request.user,pk = kwargs.get('pk'))
         team = Team.objects.filter(created_by = request.user)[0]
@@ -151,7 +152,7 @@ class ConvertToClientView(View):
         return redirect('leads-list')
     
 
-class AddFileView(View):
+class AddFileView(LoginRequiredMixin,View):
     def post(self,request,*args,**kwargs):
         pk = kwargs.get('pk')
         form = AddFileForm(request.POST,request.FILES)
@@ -167,7 +168,7 @@ class AddFileView(View):
         
 
 
-class AddCommentView(View):
+class AddCommentView(LoginRequiredMixin,View):
     def post(self,request,*args,**kwargs):
         
         form = AddCommentForm(request.POST)
