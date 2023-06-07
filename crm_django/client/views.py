@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from team.models import Team
 from .models import Client
-from .forms import AddClientForm, AddCommentForm
+from .forms import AddClientForm, AddCommentForm, AddFileForm
 # Create your views here.
 
 def clients_list(request):
@@ -18,6 +18,7 @@ def clients_list(request):
 def client_details(request, pk):
     client = get_object_or_404(Client, created_by = request.user, pk = pk)
     team = Team.objects.filter(created_by = request.user)[0]
+    formfile = AddFileForm()
 
     if request.method == 'POST':
 
@@ -33,8 +34,22 @@ def client_details(request, pk):
         form = AddCommentForm()
     return render(request,'client/client_detail.html',{
         'client':client,
-        'form': form
+        'form': form,
+        'formfile':formfile
     })
+
+@login_required
+def add_file(request, pk):
+    team = Team.objects.filter(created_by = request.user)[0]
+    if request.method == 'POST':
+        form = AddFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.save(commit=False)
+            file.team = team
+            file.created_by = request.user
+            file.client_id = pk
+            file.save()
+        return redirect('client-details',pk=pk)
 
 
 @login_required

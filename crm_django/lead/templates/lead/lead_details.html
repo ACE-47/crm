@@ -52,13 +52,36 @@
 
         <form action="{% url 'add-comment' lead.id %}" method="post">
             {% csrf_token %}
+            
             {{ form.as_p}}
             
             <button class="py-2 px-4 bg-blue-600 rounded-xl text-white">Submit</button>
         </form>
 
         <hr class="my-4">
+
+        <hr class= "my-4">
+        
+        
+        <h2 class="mb-6 text-xl">Files</h2>
+
+        <div class="space-y-4">
+            {% for file in lead.files.all %}
+                <div class="my-4 bg-gray-100 py-6 px-6 rounded-xl">
+                    <p class="mb-2"><strong>{{file.created_by}}</strong> @ {{file.created_at}}</p>
+                    <a href="{{file.file.url}}"> Download </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <form action="{% url 'add-file' lead.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {{ formfile.as_p}}
             
+            <button class="my-4 py-2 px-4 bg-blue-600 rounded-xl text-white">Submit</button>
+        </form>
+        <hr class= "my-4">
         <a href="{% url 'leads-list' %}">Back to Leads</a>
         
     </div>

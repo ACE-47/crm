@@ -47,6 +47,18 @@ class Lead(models.Model):
         return self.name
     
 
+class LeadFile(models.Model):
+    team = models.ForeignKey(Team, related_name='leads_files',on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, related_name='files', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='lead_files')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE , related_name='lead_files')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.created_by.username
+    
+
+
 class Comment(models.Model):
     team = models.ForeignKey(Team, related_name='leads_comment',on_delete=models.CASCADE)
     lead = models.ForeignKey(Lead, related_name='comments', on_delete=models.CASCADE)
@@ -55,5 +67,5 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.created_by
+        return self.created_by.username
     
