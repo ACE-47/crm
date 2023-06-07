@@ -20,3 +20,10 @@ def edit_team(request, pk):
         'team':team,
         'form':form,
     })
+
+@login_required
+def team_detail(request, pk):
+    team = get_object_or_404(Team, created_by =request.user, pk=pk)
+    return render(request,'team/team_detail.html',{
+        'team':team
+    })
