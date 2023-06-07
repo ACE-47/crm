@@ -16,7 +16,7 @@ class Plan(models.Model):
 
 
 class Team(models.Model):
-    plan = models.ForeignKey(Plan,related_name='teams',on_delete=models.CASCADE)
+    plan = models.ForeignKey(Plan, related_name='teams', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     member = models.ManyToManyField(User,related_name='teams')
     created_by = models.ForeignKey(User,related_name='created_team',on_delete=models.CASCADE)
