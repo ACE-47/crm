@@ -6,6 +6,15 @@ from .forms import TeamForm
 # Create your views here.
 
 @login_required
+def team_list(request):
+    teams = Team.objects.filter(member__in = [request.user])
+
+    return render(request, 'team/team_list.com',{
+        'teams':teams
+    })
+
+
+@login_required
 def edit_team(request, pk):
     team = get_object_or_404(Team, created_by =request.user,pk=pk)
     if request.method == 'POST':
